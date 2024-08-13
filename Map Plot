@@ -1,0 +1,90 @@
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import pandas.plotting as pot
+import statsmodels.api as stats
+import geopandas as gpd
+import plotly.express as px
+import seaborn as sb
+import plotly.express as px
+import plotly.io as pio
+import geopy
+import pycountry_convert as pc
+
+
+pio.renderers.default = 'browser'
+loc_data = pd.read_csv(r"C:\Users\shizh\Desktop\Internship\Final_sample_10k.csv")
+cleaned_vals = loc_data["norm_address"]
+USA_vals = loc_data['is_usa'].copy()
+city_vals = loc_data['city'].copy()
+state_vals = loc_data['state'].copy()
+country_vals = loc_data['country'].copy()
+location_vals = loc_data['is_location'].copy()
+longitude_vals = [None]*len(cleaned_vals)
+latitude_vals = [None]*len(cleaned_vals)
+continent_vals = [None]*len(cleaned_vals)
+
+
+def reduce_multiples(i):
+    if len(str(country_vals[i])) > 3 and str(country_vals[i]) != 'nan':
+        country_vals[i] = str(country_vals[i])[:3]
+# gets rid of edge cases of people putting 2 countries in their location bio
+
+def change_romania(i):
+    if str(country_vals[i]) == 'ROM':
+        country_vals[i] = 'ROU'
+        #the program still uses some old alpha 3 codes, this converts them into the old ones
+    
+def change_Morroco(i):
+    if str(country_vals[i]) == 'MOR':
+        country_vals[i] = 'MAR'
+        #the program still uses some old alpha 3 codes, this converts them into the old ones
+
+def change_EU(i):
+    if str(country_vals[i]) == 'EU':
+        country_vals[i] = 'nan'
+        #EU isn't a country alpha code, but the ai thinks it is
+        
+def get_rid_Non(i):
+    if str(country_vals[i]) == 'Non':
+        country_vals[i] = 'nan'
+        #I don't know how None got here, its supposed to be empty if it returns none, but whatever
+        
+def change_TL(i):
+    if str(country_vals[i]) == 'TLS':
+        country_vals[i] = 'TP'
+        #the program still uses some old alpha 3 codes, this converts them into the old ones
+        
+
+def get_continent(i):
+    if str(country_vals[i]) != 'nan':
+        if len(str(country_vals[i])) == 3:
+            country_codes = pc.country_alpha3_to_country_alpha2(country_vals[i])
+            continent_vals[i] = pc.country_alpha2_to_continent_code(country_codes)
+        else:
+            continent_vals[i] = pc.country_alpha2_to_continent_code(country_vals[i])
+            
+
+    
+    
+    
+
+def get_loc_dataframe():
+    for i in range(len(cleaned_vals)):
+        reduce_multiples(i)
+        change_romania(i)
+        change_Morroco(i)
+        change_EU(i)
+        change_TL(i)
+        get_rid_Non(i)
+        get_continent(i)
+    loc_data.insert(4, "cont_data", continent_vals, True)
+
+        
+    
+get_loc_dataframe()
+
+fig = px.scatter_geo(loc_data, lat='latitude', lon='longtitude', color='cont_data',hover_name='norm_address', title='10K Applicant Locations')
+
+fig.show()
