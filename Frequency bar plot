@@ -1,0 +1,106 @@
+import pycountry as pyc
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.io as pio
+import pycountry_convert as pc
+import matplotlib as mpl
+
+loc_data = pd.read_csv(r'C:\Users\shizh\Desktop\Internship/Final_sample_10k.csv')
+cleaned_vals = loc_data["cleaned_address"]
+USA_vals = loc_data['is_usa'].copy()
+city_vals = loc_data['city'].copy()
+state_vals = loc_data['state'].copy()
+country_vals = loc_data['country'].copy()
+location_vals = loc_data['is_location'].copy()
+mpl.rc('font', family='Consolas')
+labels = ['state_coun', 'cit_stat_coun', 'None', 'city', 'state','country', 'city_coun', 'city_state']
+
+
+
+    
+def get_city_state_country_freq():
+    freq = 0
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) != 'nan' and str(state_vals[i]) != 'nan' and str(country_vals[i]) != 'nan':
+            freq += 1
+    return freq
+    #gets frequency of values who have city,state,and country 
+
+def get_state_country_freq():
+    freq = 0
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) == 'nan' and str(state_vals[i]) != 'nan' and str(country_vals[i]) != 'nan':
+            freq += 1
+    return freq
+    #gets frequency of values who have state, country, but no city
+
+def get_None_freq():
+    freq = 0
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) == 'nan' and str(state_vals[i]) == 'nan' and str(country_vals[i]) == 'nan':
+            freq += 1
+    return freq
+    #gets frequency of values who have Nothing in their short sad lives  
+
+def get_City_freq():
+    freq = 0
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) != 'nan' and str(state_vals[i]) == 'nan' and str(country_vals[i]) == 'nan':
+            freq += 1
+    return freq
+    #gets frequency of values who have Only City
+
+def get_State_freq():
+    freq = 0 
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) == 'nan' and str(state_vals[i]) != 'nan' and str(country_vals[i]) == 'nan':
+            freq += 1
+    return freq
+    #gets frequency of values who have only State
+
+def get_country_freq():
+    freq = 0
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) == 'nan' and str(state_vals[i]) == 'nan' and str(country_vals[i]) != 'nan':
+            freq += 1
+    return freq
+    #gets frequency of values who have only Country 
+
+def get_city_country_freq():
+    freq = 0
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) != 'nan' and str(state_vals[i]) == 'nan' and str(country_vals[i]) != 'nan':
+           freq += 1
+    return freq
+    #gets frequency of values who have City and country but no state
+
+def get_city_state_freq():
+    freq = 0
+    for i in range(len(cleaned_vals)):
+        if str(city_vals[i]) != 'nan' and str(state_vals[i]) != 'nan' and str(country_vals[i]) == 'nan':
+            freq += 1
+    return freq
+    #Gets city and state and no country
+
+def get_bar_freq():
+    frequency = []
+    frequency.append(get_state_country_freq())
+    frequency.append(get_city_state_country_freq())
+    frequency.append(get_None_freq())
+    frequency.append(get_City_freq())
+    frequency.append(get_State_freq())
+    frequency.append(get_country_freq())
+    frequency.append(get_city_country_freq())
+    frequency.append(get_city_state_freq())
+    return frequency
+    #gets the frequency of all the different possible columns
+
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1 = plt.bar(labels, get_bar_freq())
+ax1 = plt.xticks(rotation = 30)
+ax1 = plt.ylabel('Frequency')
+ax1 = plt.xlabel('normalized location attributes')
+ax1 = plt.title('Frequency of various combinations of location attributes')
+plt.savefig(r'C:\Users\shizh\Desktop\Internship/frequency_plot.png', dpi = 500, bbox_inches = 'tight')
