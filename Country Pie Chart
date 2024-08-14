@@ -1,0 +1,124 @@
+import pycountry as pyc
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.io as pio
+import pycountry_convert as pc
+import matplotlib as mpl
+
+
+country_data = pd.read_csv(r'C:\Users\shizh\Desktop\Internship/countries of the world.csv')
+loc_data = pd.read_csv(r'C:\Users\shizh\Desktop\Internship/Final_sample_10k.csv')
+cleaned_vals = loc_data["norm_address"]
+USA_vals = loc_data['is_usa'].copy()
+city_vals = loc_data['city'].copy()
+state_vals = loc_data['state'].copy()
+country_vals = loc_data['country'].copy()
+location_vals = loc_data['is_location'].copy()
+mpl.rc('font', family='Consolas')
+countries = list(country_data['Country'].str.strip())
+countries.append('nan')
+
+
+def reduce_multiples(i):
+    if len(str(country_vals[i])) > 3 and str(country_vals[i]) != 'nan':
+        country_vals[i] = str(country_vals[i])[:3]
+        #reduces country_vals[i]  to only len 3, in the rare case someone put 2 countries down and the ai converts it into 2 alpha 3 codes
+
+def change_romania(i):
+    if str(country_vals[i]) == 'ROM':
+        country_vals[i] = 'ROU'
+    #deals with anoyying romania exception because pycountry convert is old as heck
+    
+def change_Morroco(i):
+    if str(country_vals[i]) == 'MOR':
+        country_vals[i] = 'MAR'
+        #deals with anoyying Morroco exception because pycountry convert is old as heck
+        
+def change_EU(i):
+    if str(country_vals[i]) == 'EU':
+        country_vals[i] = 'nan'
+        ##deals with anoyying EU exception because the ai thinks EU is a country(its not its an organization)
+        
+def get_rid_Non(i):
+    if str(country_vals[i]) == 'Non':
+        country_vals[i] = 'nan'
+        #this shouldn't happen but deals with the rare case of None showing up
+        
+        
+def convert_countrycode(i):
+    if str(country_vals[i]) != 'nan':
+        if len(str(country_vals[i])) == 3:
+            country_alpha2 = pc.country_alpha3_to_country_alpha2(country_vals[i])
+            country_vals[i] = pc.country_alpha2_to_country_name(country_alpha2)
+        else:
+            country_vals[i] = pc.country_alpha2_to_country_name(country_vals[i])
+    #converts code into country name
+
+
+
+def get_frequency(value_list, value):
+    freq = 0
+    for i in range(len(value_list)):
+        if str(value_list[i]) == value:
+            freq += 1
+    return freq
+    #gets frequency of something
+
+
+def get_country_freq():
+    count_frequency = []
+    for i in range(len(countries)):
+        count_frequency.append(get_frequency(country_vals, countries[i]))
+    return count_frequency
+    #gets frequency of a specific country occuring
+    
+def leftovers_to_nan():
+    country_freq = get_country_freq()
+    leftovers = 10000 - sum(country_freq)
+    country_freq[len(countries)-1] += leftovers
+    return country_freq
+    #Makes all the leftovers nan, because nan isn't a country and if it aint a country, its nan
+
+def shorten_legend():
+    country_freq = leftovers_to_nan()
+    legend_indices = np.argpartition(country_freq, -8)[-8:]
+    legend = []
+    for i in range(len(legend_indices)):
+        legend.append(str(countries[legend_indices[i]]) + '-' + str(round(country_freq[legend_indices[i]]/sum(country_freq)*100,2)) + '%')  
+    return legend
+    #Makes the legend smaller than 264 values
+    
+def change_to_country_name():
+    for i in range(len(cleaned_vals)):
+        reduce_multiples(i)
+        change_EU(i)
+        change_Morroco(i)
+        change_romania(i)
+        get_rid_Non(i)
+        convert_countrycode(i)
+        #deals with exceptions
+        
+
+        
+change_to_country_name()
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1 = plt.pie(leftovers_to_nan())
+ax1 = plt.title('Country Distribution graph')
+leg = plt.legend(shorten_legend(),fontsize='small', loc='upper left')
+leg.legend_handles[0].set_color('tab:brown')
+leg.legend_handles[1].set_color('tab:orange')
+leg.legend_handles[2].set_color('tab:red')
+leg.legend_handles[3].set_color('tab:purple')
+leg.legend_handles[4].set_color('tab:grey')
+leg.legend_handles[5].set_color('tab:pink')
+leg.legend_handles[6].set_color('tab:grey')
+leg.legend_handles[7].set_color('tab:purple')
+#Manually sets legend color since legend color is based off index, and the indexes are wrong since their concatonated
+
+
+
+
+plt.savefig(r'C:\Users\shizh\Desktop\Internship/country_pie_plot.pdf')
+#placeholder name, do whatever you want with it
